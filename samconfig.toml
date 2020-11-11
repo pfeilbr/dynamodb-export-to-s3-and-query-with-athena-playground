@@ -1,0 +1,9 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "dynamodb-export-to-s3-and-query-with-athena-playground-v2"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-13v3pefdyn46p"
+s3_prefix = "dynamodb-export-to-s3-and-query-with-athena-playground-v2"
+region = "us-east-1"
+capabilities = "CAPABILITY_IAM"

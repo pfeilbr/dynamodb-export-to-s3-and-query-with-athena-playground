@@ -1,0 +1,116 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+
+Resources:
+  MyTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  ExportBucket:
+    Type: AWS::S3::Bucket
+
+  SeedDataLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: nodejs12.x
+      Handler: index.handler
+      InlineCode: |
+        const AWS = require('aws-sdk')
+        const response = require('cfn-response')
+        const responseStatus = "SUCCESS"
+        const responseData = {}
+        exports.handler = function(event, context) {
+            try {
+              console.log("REQUEST RECEIVED:\n" + JSON.stringify(event))
+              console.log(`TABLE_NAME: ${process.env.TABLE_NAME}`)
+              // For Delete requests, immediately send a SUCCESS response.
+              if (event.RequestType == "Delete") {
+                  response.send(event, context, "SUCCESS")
+                  return
+              }
+
+              const client = new AWS.DynamoDB.DocumentClient()
+              const params = {
+                RequestItems: {
+                  [`${process.env.TABLE_NAME}`]: [
+                    {
+                      "PutRequest": {
+                        "Item": {
+                          "pk": `pk001-${(new Date()).getTime()}`,
+                          "sk": "sk001"
+                        }
+                      }
+                    },
+                    {
+                      "PutRequest": {
+                        "Item": {
+                          "pk": `pk002-${(new Date()).getTime()}`,
+                          "sk": "sk002"
+                        }
+                      }
+                    },
+                    {
+                      "PutRequest": {
+                        "Item": {
+                          "pk": `pk003-${(new Date()).getTime()}`,
+                          "sk": "sk003"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+
+              client.batchWrite(params, function(err, data) {
+                if (err) {
+                  console.log(err)
+                  response.send(event, context, "FAILED")
+                } else {
+                  console.log(data);
+                  response.send(event, context, responseStatus, responseData)
+                }
+              });
+
+            } catch (err) {
+              console.error(err)
+              response.send(event, context, "FAILED")
+            }
+        }
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref MyTable
+      Environment:
+        Variables:
+          TABLE_NAME: !Sub "${MyTable}"
+
+  SeedDataResource:
+    Type: "Custom::SeedData"
+    Properties:
+      ServiceToken: !GetAtt SeedDataLambda.Arn
+      Version: 2
+    DependsOn:
+      - MyTable
+      - SeedDataLambda
+
+Outputs:
+  MyTableName:
+    Value: !Ref MyTable
+  MyTableArn:
+    Value: !GetAtt MyTable.Arn
+  ExportBucketName:
+    Value: !Ref ExportBucket
