@@ -12,6 +12,8 @@ example exporting dynamodb table to S3 and then querying via athena
 
 ```sh
 sam deploy --guided
+# note: seed data is generated as part of deploy via cfn custom resource `Custom::SeedData`
+# which triggers a lambda which populates the dynamodb table
 
 # update `STACK_NAME` variable in ./main.sh
 # run export table to s3 script
