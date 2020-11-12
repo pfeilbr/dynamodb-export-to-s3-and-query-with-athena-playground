@@ -13,6 +13,7 @@ SECONDS_IN_DAY=$(($SECONDS_IN_HOUR * 24))
 ONE_DAY_AGO_EPOCH_TIME=$(($CURRENT_EPOCH_TIME - $SECONDS_IN_DAY))
 
 EXPORT_TIME="${CURRENT_EPOCH_TIME}"
+S3_PREFIX="demo_prefix"
 
 echo -n "MY_TABLE_ARN: ${MY_TABLE_ARN}\nEXPORT_BUCKET_NAME: ${EXPORT_BUCKET_NAME}\nEXPORT_TIME: ${EXPORT_TIME}\n"
 
@@ -20,7 +21,7 @@ aws dynamodb export-table-to-point-in-time \
     --table-arn "${MY_TABLE_ARN}" \
     --s3-bucket "${EXPORT_BUCKET_NAME}" \
     --export-time $EXPORT_TIME \
-    --s3-prefix demo_prefix \
+    --s3-prefix "${S3_PREFIX}" \
     --export-format DYNAMODB_JSON
 
 aws dynamodb list-exports

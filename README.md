@@ -1,5 +1,7 @@
 # dynamodb-export-to-s3-and-query-with-athena-playground
 
+example exporting dynamodb table to S3 and then querying via athena
+
 ## Files
 
 * [`template.yaml`](template.yaml)
@@ -51,6 +53,29 @@ Example export file contents (line delimited json items)
 {"Item":{"pk":{"S":"pk001-1605121017583"},"sk":{"S":"sk001"}}}
 {"Item":{"pk":{"S":"pk002-1605121017583"},"sk":{"S":"sk002"}}}
 ```
+
+**Access Exported Data in S3 via Athena**
+
+```sql
+-- Create external table in athena pointing to exported S3 data
+CREATE EXTERNAL TABLE IF NOT EXISTS ddb_exported_table (
+  Item struct <pk:struct<S:string>,
+               sk:struct<S:string>>
+)
+ROW FORMAT SERDE 'org.openx.data.jsonserde.JsonSerDe'
+LOCATION 's3://dynamodb-export-to-s3-and-query-with-exportbucket-103kukqwmab7n/demo_prefix/AWSDynamoDB/01605130432834-8a918b87/data/'
+TBLPROPERTIES ( 'has_encrypted_data'='true');
+
+-- issues SELECT query
+SELECT
+    Item.pk.S as pk,
+    Item.sk.S as sk
+FROM ddb_exported_table
+```
+
+Screenshot from Athena Console
+
+![](https://www.evernote.com/l/AAH1H1K1GLJAp72MXnQvHCiOBLxptt9FkrYB/image.png)
 
 ## Resources
 
