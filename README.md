@@ -4,6 +4,7 @@
 
 * [`template.yaml`](template.yaml)
 * [`main.sh`](main.sh)
+* [`example-export/`](example-export) - example contents of export (copied from S3)
 
 ## Running
 
@@ -13,9 +14,10 @@ sam deploy --guided
 # update `STACK_NAME` variable in ./main.sh
 # run export table to s3 script
 ./main.sh
+
+aws dynamodb list-exports # in progress
 ```
 
-`aws dynamodb list-exports # in progress`
 ```json
 {
     "ExportSummaries": [
@@ -27,7 +29,9 @@ sam deploy --guided
 }
 ```
 
-`aws dynamodb list-exports # completed`
+```sh
+aws dynamodb list-exports # completed
+```
 ```json
 {
     "ExportSummaries": [
@@ -37,6 +41,15 @@ sam deploy --guided
         }
     ]
 }
+```
+
+Example export file contents (line delimited json items)
+
+`gzcat example-export/demo_prefix/AWSDynamoDB/01605130432834-8a918b87/data/vajn3deidy4svdja3fgej2ynay.json.gz`
+
+```json
+{"Item":{"pk":{"S":"pk001-1605121017583"},"sk":{"S":"sk001"}}}
+{"Item":{"pk":{"S":"pk002-1605121017583"},"sk":{"S":"sk002"}}}
 ```
 
 ## Resources
